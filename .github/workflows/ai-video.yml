@@ -35,9 +35,9 @@ jobs:
       - name: Create Video
         run: python create_video.py
 
-      - name: Upload to YouTube
-        env:
-          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
-          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
-          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
-        run: python upload_to_youtube.py
+#      - name: Upload to YouTube
+ #       env:
+  #        YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+   #       YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+    #      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+     #   run: python upload_to_youtube.py
