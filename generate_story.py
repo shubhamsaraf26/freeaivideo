@@ -27,7 +27,7 @@ story = {
       "duration_seconds": duration // 3
     },
     {
-      "narration_text": f"{topic} हमें जीवन में नई दिशा देता है।",
+      "narration_text": f"{topic} ",
       "image_prompt": f"inspiring ending scene about {topic}, sunrise, hope, cinematic",
       "duration_seconds": duration // 3
     }
