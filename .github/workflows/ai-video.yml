@@ -1,0 +1,43 @@
+
+name: AI Video Automation (HuggingFace + Free Image AI)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ai-video:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Generate Story (HuggingFace)
+        env:
+          HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
+        run: python generate_story.py
+
+      - name: Generate Audio
+        run: python generate_audio.py
+
+      - name: Generate Images (Free AI)
+        run: python generate_images.py
+
+      - name: Create Video
+        run: python create_video.py
+
+      - name: Upload to YouTube
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python upload_to_youtube.py
