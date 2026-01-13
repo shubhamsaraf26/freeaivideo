@@ -1,27 +1,41 @@
 import json
 
+# Read user input
+input_text = open("scripts/input.txt", encoding="utf-8").read()
+
+# Simple rule-based story generator (generic template)
+lines = input_text.splitlines()
+data = {line.split(":")[0].strip(): line.split(":")[1].strip() for line in lines if ":" in line}
+
+topic = data.get("Topic", "Inspiring Topic")
+message = data.get("Message", "An inspiring message")
+style = data.get("Style", "calm")
+duration = int(data.get("Duration", "30").replace("seconds","").strip())
+
+# Automatically build scenes
 story = {
-  "title": "क्षमाभाव – जैन धर्म की शक्ति",
+  "title": f"{topic} – Short Story",
   "scenes": [
     {
-      "narration_text": "जैन धर्म में क्षमा को सबसे बड़ा धर्म माना गया है।",
-      "image_prompt": "peaceful Jain monk meditating, white robes, soft golden light, spiritual atmosphere",
-      "duration_seconds": 5
+      "narration_text": f"आज हम जानेंगे {topic} के बारे में।",
+      "image_prompt": f"{topic}, cinematic, {style}, high quality illustration",
+      "duration_seconds": duration // 3
     },
     {
-      "narration_text": "क्षमा हमारे अहंकार को समाप्त करती है।",
-      "image_prompt": "lotus flower on calm water, sunrise, spiritual, cinematic",
-      "duration_seconds": 5
+      "narration_text": message,
+      "image_prompt": f"{message}, symbolic scene, {style}, cinematic lighting",
+      "duration_seconds": duration // 3
     },
     {
-      "narration_text": "जो क्षमा करता है वही सच्चा विजेता है।",
-      "image_prompt": "bright sunrise behind mountain temple, peaceful, spiritual",
-      "duration_seconds": 5
+      "narration_text": f"{topic} हमें जीवन में नई दिशा देता है।",
+      "image_prompt": f"inspiring ending scene about {topic}, sunrise, hope, cinematic",
+      "duration_seconds": duration // 3
     }
   ]
 }
 
+# Save story.json
 with open("story.json", "w", encoding="utf-8") as f:
     json.dump(story, f, ensure_ascii=False, indent=2)
 
-print("Local story.json created successfully")
+print("Generic story.json created successfully")
