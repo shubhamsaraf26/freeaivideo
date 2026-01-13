@@ -4,6 +4,12 @@ name: AI Video Automation (HuggingFace + Free Image AI)
 on:
   workflow_dispatch:
 
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/input.txt"
+
 jobs:
   ai-video:
     runs-on: ubuntu-latest
