@@ -1,8 +1,7 @@
-
-import requests, json, os
+import requests, json, os, time
 
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "")
-headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+headers = {"Authorization": f"Bearer {HF_API_TOKEN}"} if HF_API_TOKEN else {}
 
 prompt = open("scripts/input.txt", encoding="utf-8").read()
 
@@ -14,18 +13,48 @@ system_prompt = (
 
 full_prompt = system_prompt + "\n\n" + prompt
 
-response = requests.post(
-    "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
-    headers=headers,
-    json={"inputs": full_prompt, "parameters": {"max_new_tokens": 600}}
-)
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+
+payload = {
+    "inputs": full_prompt,
+    "parameters": {"max_new_tokens": 600}
+}
+
+print("Requesting HuggingFace model...")
+
+response = requests.post(API_URL, headers=headers, json=payload)
 
 result = response.json()
-text = result[0]["generated_text"]
+
+# ---- Handle different HF response formats ---- #
+
+# Case 1: Model loading message
+if isinstance(result, dict) and "error" in result:
+    print("HuggingFace response:", result["error"])
+    print("Model may be loading. Waiting 20 seconds and retrying...")
+    time.sleep(20)
+    response = requests.post(API_URL, headers=headers, json=payload)
+    result = response.json()
+
+# Case 2: Normal generation result
+if isinstance(result, list) and "generated_text" in result[0]:
+    text = result[0]["generated_text"]
+
+# Case 3: Some models return directly as dict
+elif isinstance(result, dict) and "generated_text" in result:
+    text = result["generated_text"]
+
+else:
+    print("Unexpected HuggingFace response:")
+    print(result)
+    raise Exception("HuggingFace API did not return generated_text")
+
+# ---- Extract JSON from text ---- #
 
 start = text.find("{")
 end = text.rfind("}") + 1
 json_text = text[start:end]
 
-open("story.json","w",encoding="utf-8").write(json_text)
-print("Story generated using HuggingFace")
+open("story.json", "w", encoding="utf-8").write(json_text)
+
+print("Story generated successfully using HuggingFace")
