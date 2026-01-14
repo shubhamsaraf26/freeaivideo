@@ -1,9 +1,23 @@
-import json
+import json, os, shutil
 
-# Read full input file
-text = open("scripts/input.txt", encoding="utf-8").read()
+STORY_DIR = "scripts/stories"
+PROCESSED_DIR = "scripts/processed"
 
-# Split sections
+os.makedirs(PROCESSED_DIR, exist_ok=True)
+
+# Pick first unprocessed story file
+story_files = sorted([f for f in os.listdir(STORY_DIR) if f.endswith(".txt")])
+
+if not story_files:
+    raise Exception("No new story files found in scripts/stories")
+
+story_file = story_files[0]
+story_path = os.path.join(STORY_DIR, story_file)
+
+print("Using story file:", story_file)
+
+text = open(story_path, encoding="utf-8").read()
+
 def get_section(name, text):
     start = text.find(name + ":")
     if start == -1:
@@ -17,17 +31,12 @@ description = get_section("DESCRIPTION", text)
 script_text = get_section("SCRIPT", text)
 scenes_text = get_section("SCENES", text)
 
-# Narration lines
-narration_lines = [line.strip() for line in script_text.splitlines() if line.strip()]
+narration_lines = [l.strip() for l in script_text.splitlines() if l.strip()]
+scene_prompts = [l.strip() for l in scenes_text.splitlines() if l.strip()]
 
-# Scene prompts
-scene_prompts = [line.strip() for line in scenes_text.splitlines() if line.strip()]
-
-# Auto-balance durations
 scene_count = len(scene_prompts)
-default_duration = 30 // scene_count if scene_count else 5
+default_duration = max(3, 30 // scene_count)
 
-# Build story.json
 story = {
     "title": title,
     "description": description,
@@ -35,15 +44,17 @@ story = {
 }
 
 for i in range(scene_count):
-    scene = {
+    story["scenes"].append({
         "narration_text": narration_lines[i] if i < len(narration_lines) else narration_lines[-1],
         "image_prompt": scene_prompts[i],
         "duration_seconds": default_duration
-    }
-    story["scenes"].append(scene)
+    })
 
-# Save story.json
+# Save story.json for rest of pipeline
 with open("story.json", "w", encoding="utf-8") as f:
     json.dump(story, f, ensure_ascii=False, indent=2)
 
-print("Structured story.json created successfully")
+# Move processed story file
+shutil.move(story_path, os.path.join(PROCESSED_DIR, story_file))
+
+print("story.json created and story file moved to processed/")
