@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - "scripts/input.txt"
+      - "scripts/stories/**"
 
 jobs:
   ai-video:
