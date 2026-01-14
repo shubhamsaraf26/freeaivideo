@@ -16,8 +16,10 @@ story_path = os.path.join(STORY_DIR, story_file)
 
 print("Using story file:", story_file)
 
+# Read story file
 text = open(story_path, encoding="utf-8").read()
 
+# -------- Helper to extract sections --------
 def get_section(name, text):
     start = text.find(name + ":")
     if start == -1:
@@ -31,15 +33,26 @@ description = get_section("DESCRIPTION", text)
 script_text = get_section("SCRIPT", text)
 scenes_text = get_section("SCENES", text)
 
+# Narration lines
 narration_lines = [l.strip() for l in script_text.splitlines() if l.strip()]
+
+# Scene prompts
 scene_prompts = [l.strip() for l in scenes_text.splitlines() if l.strip()]
 
 scene_count = len(scene_prompts)
-default_duration = max(3, 30 // scene_count)
 
+if scene_count == 0:
+    raise Exception("No SCENES found in story file")
+
+# -------- Total Video Duration = 60 seconds --------
+TOTAL_VIDEO_DURATION = 60   # 1 minute video
+
+default_duration = max(3, TOTAL_VIDEO_DURATION // scene_count)
+
+# -------- Build story.json --------
 story = {
-    "title": title,
-    "description": description,
+    "title": title if title else "AI Generated Short",
+    "description": description if description else "AI generated video story",
     "scenes": []
 }
 
@@ -50,11 +63,14 @@ for i in range(scene_count):
         "duration_seconds": default_duration
     })
 
-# Save story.json for rest of pipeline
+# Save story.json
 with open("story.json", "w", encoding="utf-8") as f:
     json.dump(story, f, ensure_ascii=False, indent=2)
 
 # Move processed story file
 shutil.move(story_path, os.path.join(PROCESSED_DIR, story_file))
 
-print("story.json created and story file moved to processed/")
+print("story.json created successfully")
+print("Processed story moved to scripts/processed/")
+print("Total scenes:", scene_count)
+print("Each scene duration:", default_duration, "seconds")
