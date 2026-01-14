@@ -1,41 +1,49 @@
 import json
 
-# Read user input
-input_text = open("scripts/input.txt", encoding="utf-8").read()
+# Read full input file
+text = open("scripts/input.txt", encoding="utf-8").read()
 
-# Simple rule-based story generator (generic template)
-lines = input_text.splitlines()
-data = {line.split(":")[0].strip(): line.split(":")[1].strip() for line in lines if ":" in line}
+# Split sections
+def get_section(name, text):
+    start = text.find(name + ":")
+    if start == -1:
+        return ""
+    start += len(name) + 1
+    end = text.find("\n\n", start)
+    return text[start:end].strip() if end != -1 else text[start:].strip()
 
-topic = data.get("Topic", "Inspiring Topic")
-message = data.get("Message", "An inspiring message")
-style = data.get("Style", "calm")
-duration = int(data.get("Duration", "30").replace("seconds","").strip())
+title = get_section("TITLE", text)
+description = get_section("DESCRIPTION", text)
+script_text = get_section("SCRIPT", text)
+scenes_text = get_section("SCENES", text)
 
-# Automatically build scenes
+# Narration lines
+narration_lines = [line.strip() for line in script_text.splitlines() if line.strip()]
+
+# Scene prompts
+scene_prompts = [line.strip() for line in scenes_text.splitlines() if line.strip()]
+
+# Auto-balance durations
+scene_count = len(scene_prompts)
+default_duration = 30 // scene_count if scene_count else 5
+
+# Build story.json
 story = {
-  "title": f"{topic} – Short Story",
-  "scenes": [
-    {
-      "narration_text": f"आज हम जानेंगे {topic} के बारे में।",
-      "image_prompt": f"{topic}, cinematic, {style}, high quality illustration",
-      "duration_seconds": duration // 3
-    },
-    {
-      "narration_text": message,
-      "image_prompt": f"{message}, symbolic scene, {style}, cinematic lighting",
-      "duration_seconds": duration // 3
-    },
-    {
-      "narration_text": f"{topic} ",
-      "image_prompt": f"inspiring ending scene about {topic}, sunrise, hope, cinematic",
-      "duration_seconds": duration // 3
-    }
-  ]
+    "title": title,
+    "description": description,
+    "scenes": []
 }
+
+for i in range(scene_count):
+    scene = {
+        "narration_text": narration_lines[i] if i < len(narration_lines) else narration_lines[-1],
+        "image_prompt": scene_prompts[i],
+        "duration_seconds": default_duration
+    }
+    story["scenes"].append(scene)
 
 # Save story.json
 with open("story.json", "w", encoding="utf-8") as f:
     json.dump(story, f, ensure_ascii=False, indent=2)
 
-print("Generic story.json created successfully")
+print("Structured story.json created successfully")
